@@ -29,13 +29,19 @@ async function run() {
 
     // cars related api
     app.get('/cars', async(req, res)=>{
-        const search = req.query.search;
-        const sort = req.query.sort;
+        const search = req.query.search || '';
+        const sortField = req.query.sortField;
+        const sortOrder = req.query.sortOrder;
+        const searchPattern = String(search)
         let query = {
-            name: { $regex: search, $options: 'i' }
+            name: { $regex: searchPattern, $options: 'i' }
         }
-        let options = {}
-        if(sort) options = { sort: { price: sort === 'asc' ? 1 : -1 } }
+        let sortOptions = {}
+        if(sortField) {
+            sortOptions[sortField] = sortOrder === 'asc' ? 1 : -1
+        }
+        
+        const options = { sort : sortOptions}
         // const cursor = carsCollection.find()
         // const result = await cursor.toArray()
         const result = await carsCollection
