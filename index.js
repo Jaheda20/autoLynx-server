@@ -24,6 +24,25 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+
+    const carsCollection = client.db('autolynxDB').collection('allCars');
+
+    // cars related api
+    app.get('/cars', async(req, res)=>{
+        const search = req.query.search;
+        const sort = req.query.sort;
+        let query = {
+            name: { $regex: search, $options: 'i' }
+        }
+        let options = {}
+        if(sort) options = { sort: { price: sort === 'asc' ? 1 : -1 } }
+        // const cursor = carsCollection.find()
+        // const result = await cursor.toArray()
+        const result = await carsCollection
+            .find(query, options).toArray()
+        res.send(result)
+    })
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
