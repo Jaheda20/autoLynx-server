@@ -15,57 +15,71 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
 async function run() {
-  try {
+    try {
 
-    const carsCollection = client.db('autolynxDB').collection('allCars');
+        const carsCollection = client.db('autolynxDB').collection('allCars');
 
-    // cars related api
-    app.get('/cars', async(req, res)=>{
-        const search = req.query.search || '';
-        const sortField = req.query.sortField;
-        const sortOrder = req.query.sortOrder;
-        const searchPattern = String(search)
-        let query = {
-            name: { $regex: searchPattern, $options: 'i' }
-        }
-        let sortOptions = {}
-        if(sortField) {
-            sortOptions[sortField] = sortOrder === 'asc' ? 1 : -1
-        }
-        
-        const options = { sort : sortOptions}
-        // const cursor = carsCollection.find()
-        // const result = await cursor.toArray()
-        const result = await carsCollection
-            .find(query, options).toArray()
-        res.send(result)
-    })
+        // cars related api
+        app.get('/cars', async (req, res) => {
+            const size = parseInt(req.query.size) || 5
+            const page = parseInt(req.query.page) - 1
+            const search = req.query.search || '';
+            const sortField = req.query.sortField;
+            const sortOrder = req.query.sortOrder;
+            const searchPattern = String(search)
+            let query = {
+                name: { $regex: searchPattern, $options: 'i' }
+            }
+            let sortOptions = {}
+            if (sortField) {
+                sortOptions[sortField] = sortOrder === 'asc' ? 1 : -1
+            }
 
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
-  }
+            const options = { sort: sortOptions }
+
+            const totalCars = await carsCollection.countDocuments(query)
+            const cars = await carsCollection
+                .find(query, options)
+                .skip(page * size)
+                .limit(size)
+                .toArray()
+
+            const totalPages = Math.ceil(totalCars / size)
+
+            res.send(
+                {
+                    cars: cars || [],
+                    totalCars,
+                    totalPages
+                }
+            )
+        })
+
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
+        // Send a ping to confirm a successful connection
+        // await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+        // Ensures that the client will close when you finish/error
+        // await client.close();
+    }
 }
 run().catch(console.dir);
 
 
-app.get('/', (req, res)=>{
+app.get('/', (req, res) => {
     res.send('autolynx is running')
 })
 
-app.listen(port, ()=>{
+app.listen(port, () => {
     console.log(`AutoLynx is running on port ${port}`)
 })
