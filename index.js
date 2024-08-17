@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 8000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middleware
 app.use(cors());
@@ -84,6 +84,14 @@ async function run() {
                     totalPages
                 }
             )
+        })
+
+        // single car data api
+        app.get('/car/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await carsCollection.findOne(query)
+            res.send(result)
         })
 
         // Connect the client to the server	(optional starting in v4.7)
