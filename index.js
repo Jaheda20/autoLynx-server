@@ -5,13 +5,14 @@ require('dotenv').config();
 const port = process.env.PORT || 8000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-// middleware
-app.use(cors());
-app.use(express.json());
 
+app.use(express.json())
+app.use(cors())
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.al6znur.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -28,7 +29,6 @@ async function run() {
         const carsCollection = client.db('autolynxDB').collection('allCars');
 
         // cars related api
-
         // for featured items
         app.get('/allCars', async (req, res)=>{
             const result = await carsCollection.find().toArray()
