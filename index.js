@@ -28,15 +28,38 @@ async function run() {
         const carsCollection = client.db('autolynxDB').collection('allCars');
 
         // cars related api
+
+        // for featured items
+        app.get('/allCars', async (req, res)=>{
+            const result = await carsCollection.find().toArray()
+            res.send(result)
+        })
+
+        // for all cars page
         app.get('/cars', async (req, res) => {
             const size = parseInt(req.query.size) || 5
             const page = parseInt(req.query.page) - 1
             const search = req.query.search || '';
             const sortField = req.query.sortField;
             const sortOrder = req.query.sortOrder;
+            const brand = req.query.brand;
+            const type = req.query.type;
+            const fuelType = req.query.fuel_type;
             const searchPattern = String(search)
             let query = {
                 name: { $regex: searchPattern, $options: 'i' }
+            }
+
+            if(brand) {
+                query.brand = brand
+            }
+
+            if(type) {
+                query.type = type
+            }
+
+            if(fuelType) {
+                query.fuel_type = fuelType
             }
             let sortOptions = {}
             if (sortField) {
