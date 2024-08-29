@@ -97,6 +97,12 @@ async function run() {
 
         // wishlist related api
         
+        app.get('/wishlist/:email', async(req, res) => {
+            const email = req.params.email;
+            const query = { email : email }
+            const result = await wishlistCollection.find(query).toArray()
+            res.send(result)
+        })
 
         app.post('/wishlist/:email', async(req, res)=>{
             const wishlistData = req.body;
@@ -106,7 +112,7 @@ async function run() {
                 email: email,
                 carId: carId
             }
-            const alreadyAdded = await carsCollection.findOne(query)
+            const alreadyAdded = await wishlistCollection.findOne(query)
             if(alreadyAdded) {
                 return res.status(400).send({message: "You've already added this car on your wishlist"})
             }
