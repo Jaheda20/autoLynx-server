@@ -13,7 +13,6 @@ app.use(cors())
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.al6znur.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
     serverApi: {
@@ -27,6 +26,7 @@ async function run() {
     try {
 
         const carsCollection = client.db('autolynxDB').collection('allCars');
+        const wishlistCollection = client.db('autolynxDB').collection('wishlists');
 
         // cars related api
         // for featured items
@@ -93,6 +93,27 @@ async function run() {
             const result = await carsCollection.findOne(query)
             res.send(result)
         })
+
+
+        // wishlist related api
+        
+
+        app.post('/wishlist/:email', async(req, res)=>{
+            const wishlistData = req.body;
+            const email = req.params.email;
+            const carId = wishlistData.carId;
+            const query = {
+                email: email,
+                carId: carId
+            }
+            const alreadyAdded = await carsCollection.findOne(query)
+            if(alreadyAdded) {
+                return res.status(400).send({message: "You've already added this car on your wishlist"})
+            }
+            const result = await wishlistCollection.insertOne(wishlistData)
+            res.send(result)
+        })
+
 
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
